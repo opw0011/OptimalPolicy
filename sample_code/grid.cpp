@@ -36,6 +36,14 @@ void Grid::Intialize(void) {
   /*
    * add
    */
+  for (int i = 0; i < nrow_; i++) {
+    for (int j = 0; j < ncol_; j++) {
+      // initial all the states value to zero
+      states_[i][j].set_value(VALUE_DEFAULT);
+      // initail all the policy to default = North
+      states_[i][j].set_policy(POLICY_DEFAULT);
+    }
+  }
 }
 
 void Grid::PolicyIteration(void) {
@@ -43,6 +51,7 @@ void Grid::PolicyIteration(void) {
   /* 
    * add
    */
+  Intialize();  // initialize the grid
   int cnt = 0;
 
 
@@ -67,6 +76,8 @@ void Grid::PolicyIteration(void) {
 
 
 void Grid::ValueIteration(void) {
+  Intialize();  // initialize the grid
+  
   cout << endl << "Value Iteration" << endl << endl;
   int cnt = 0;
   double delta = 1;
