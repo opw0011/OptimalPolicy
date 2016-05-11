@@ -9,10 +9,10 @@ int main(void) {
   mygrid.print();
 
   /* Policy Iteration */
-  //mygrid.PolicyIteration();
+  mygrid.PolicyIteration();
 
   /* print the summary */
-  //mygrid.print();
+  mygrid.print();
 
   /* Value Iteration*/
   mygrid.ValueIteration();

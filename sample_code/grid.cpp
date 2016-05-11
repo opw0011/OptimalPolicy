@@ -50,17 +50,19 @@ void Grid::PolicyIteration(void) {
   print_values();
   print_policy();
   cout << endl;
-  // while(/* add */) {
-  //   /*
-  //    * add
-  //    */
-  //   cnt++;
-  //   cout << "iter: " << cnt << endl;
-  //   print_values();
-  //   print_policy();
-  //   cout << endl;
-  // }
+  bool policy_stable = false;
+  while(!policy_stable) {
+    // policy evaluation
+    PolicyEvaluation();
+    // policy improvement
+    policy_stable = PolicyImprovement();
 
+    cnt++;
+    cout << "iter: " << cnt << endl;
+    print_values();
+    print_policy();
+    cout << endl;
+  }
 }
 
 
@@ -74,13 +76,13 @@ void Grid::ValueIteration(void) {
   cout << "iter: " << cnt << endl;
   print_values();
   cout << endl;
-  while (delta >= THETA_DEFALT) {
+  while (delta >= theta_) {
     delta = 0;
     vector<StateRow> new_states = states_; // make a copy of the original states
 
     // for each states i,j
     for (int i = 0; i < nrow_; i++) {
-      for (int j = 0; j < nrow_; j++) {
+      for (int j = 0; j < ncol_; j++) {
         // cout << "cor: " << i << "," << j << endl;
         State& current_state = new_states[i][j];
         double v = current_state.value(); // original state value
@@ -130,8 +132,7 @@ void Grid::ValueIteration(void) {
     /*
      * add
      */
-     // delta = -4; // to run 1 iteration
-    // if(cnt >5) break;
+    // if(cnt >=24) break;
   }
 
   /* determine policy */
@@ -149,13 +150,92 @@ void Grid::PolicyEvaluation(void) {
   /* 
    * add
    */
+   double delta = 1;
+   vector<StateRow> new_states = states_; // make a copy of the original states
+   int count = 0;
+   while (delta >= theta_) {
+    delta = 0;
+
+    for (int i = 0; i < nrow_; i++) {
+      for (int j = 0; j < ncol_; j++) {
+        State& current_state = new_states[i][j];
+        double v = current_state.value(); // original state value
+
+        // pick the stored policy
+        unsigned selected_policy = current_state.policy();
+        // cout << "SELECTED policy: " << selected_policy << endl;
+        Action action = current_state.get_action(selected_policy);
+
+        double new_state_value = 0.0;
+        // calcualte the expected state value
+        for(int l = 0; l < action.size(); l++) {
+          NextState nextState = action[l];
+          // cout << nextState.print_str();
+          new_state_value += nextState.proba * (nextState.reward + gamma_ * get_state_value(nextState.id));
+          // cout << "new_state_value: " << new_state_value << endl;
+        }
+        current_state.set_value(new_state_value); // update the state value
+
+        double diff = abs(v - current_state.value());
+        delta = (delta > diff) ? delta : diff; 
+      }
+    }
+
+    // after the iterations, copy the new states
+    states_ = new_states;
+
+    count++;
+
+    // print_values();
+    // cout << "Interation: " << count << endl;
+    // if (count >= 2) break;
+
+   }
 }
 
 bool Grid::PolicyImprovement(void) {
   /*
    * add
    */
-   bool stable = false;
+  bool stable = true;
+
+  // for each states i,j
+  for (int i = 0; i < nrow_; i++) {
+    for (int j = 0; j < ncol_; j++) {
+      State& current_state = states_[i][j];
+
+      unsigned b = current_state.policy();  // store original policy
+
+      // find the policy with the max state value
+      double max_state_value = current_state.value();
+      unsigned max_policy = 0;  // default = NORTH
+
+      // for each Action, N S W E
+      for(int dir = 0; dir <= 3; dir++) {
+        Action action = current_state.get_action(dir);
+        double new_state_value = 0.0;
+
+        // calcualte the expected state value
+        for(int l = 0; l < action.size(); l++) {
+          NextState nextState = action[l];
+          // cout << nextState.print_str();
+          new_state_value += nextState.proba * (nextState.reward + gamma_ * get_state_value(nextState.id));
+          // cout << "new_state_value: " << new_state_value << endl;
+        }
+
+        if(new_state_value > max_state_value){
+          max_state_value = new_state_value;  
+          max_policy = dir;    
+        }
+      }
+
+      // if original policy not equal optimized policy
+      if (b != max_policy) {
+        stable = false;
+        current_state.set_policy(max_policy); // update pi(s)
+      }
+    }
+  }
   return stable;
 }
 
