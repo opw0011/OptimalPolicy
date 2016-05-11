@@ -15,9 +15,9 @@ int main(void) {
   //mygrid.print();
 
   /* Value Iteration*/
-  //mygrid.ValueIteration();
+  mygrid.ValueIteration();
 
   /* print the summary */
-  //mygrid.print();
+  mygrid.print();
   return 0;
 }

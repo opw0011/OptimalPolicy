@@ -50,29 +50,75 @@ void Grid::PolicyIteration(void) {
   print_values();
   print_policy();
   cout << endl;
-  while(/* add */) {
-    /*
-     * add
-     */
-    cnt++;
-    cout << "iter: " << cnt << endl;
-    print_values();
-    print_policy();
-    cout << endl;
-  }
+  // while(/* add */) {
+  //   /*
+  //    * add
+  //    */
+  //   cnt++;
+  //   cout << "iter: " << cnt << endl;
+  //   print_values();
+  //   print_policy();
+  //   cout << endl;
+  // }
+
 }
 
 
 void Grid::ValueIteration(void) {
   cout << endl << "Value Iteration" << endl << endl;
   int cnt = 0;
+  double delta = 1;
   /*
    * add
    */
   cout << "iter: " << cnt << endl;
   print_values();
   cout << endl;
-  while (/* add */) {
+  while (delta >= THETA_DEFALT) {
+    delta = 0;
+    vector<StateRow> new_states = states_; // make a copy of the original states
+
+    // for each states i,j
+    for (int i = 0; i < nrow_; i++) {
+      for (int j = 0; j < nrow_; j++) {
+        // cout << "cor: " << i << "," << j << endl;
+        State& current_state = new_states[i][j];
+        double v = current_state.value(); // original state value
+
+        double max_state_value = v;
+        unsigned max_policy = 0;  // default = NORTH
+
+        // for each Action, N S W E
+        for(int dir = 0; dir <= 3; dir++) {
+          Action action = current_state.get_action(dir);
+          double new_state_value = 0.0;
+
+          // calcualte the expected state value
+          for(int l = 0; l < action.size(); l++) {
+            NextState nextState = action[l];
+            // cout << nextState.print_str();
+            new_state_value += nextState.proba * (nextState.reward + gamma_ * get_state_value(nextState.id));
+            // cout << "new_state_value: " << new_state_value << endl;
+          }
+
+          if(new_state_value > max_state_value){
+            max_state_value = new_state_value;  
+            max_policy = dir;    
+          }
+        }
+
+        current_state.set_value(max_state_value); // set state value with the max_state_value with centain directions
+        current_state.set_policy(max_policy);
+
+        // cout << states_[i][j].value() << "//";
+        double diff = abs(v - current_state.value());
+        delta = (delta > diff) ? delta : diff; 
+      }
+    }
+
+    // after the iterations, copy the new states
+    states_ = new_states;
+
     /*
      * add
      */ 
@@ -84,6 +130,8 @@ void Grid::ValueIteration(void) {
     /*
      * add
      */
+     // delta = -4; // to run 1 iteration
+    // if(cnt >5) break;
   }
 
   /* determine policy */
@@ -107,6 +155,7 @@ bool Grid::PolicyImprovement(void) {
   /*
    * add
    */
+   bool stable = false;
   return stable;
 }
 
